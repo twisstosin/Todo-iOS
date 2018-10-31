@@ -25,6 +25,33 @@ class ToDoTableViewController: UITableViewController {
         loadData()
     }
     
+    @IBAction func addNewTodo(_ sender: Any) {
+        let addAlert = UIAlertController(title: "New Todo", message: "Enter a Title", preferredStyle: .alert)
+        
+        addAlert.addTextField { (textfield : UITextField) in
+            textfield.placeholder = "ToDo Item Title"
+        }
+        
+        
+        addAlert.addAction(UIAlertAction(title: "Create", style: .default, handler:
+            {(action:UIAlertAction) in
+            
+                guard let title = addAlert.textFields?.first?.text else { return }
+                let newTodo = TodoItem.init(title: title, completed: false, createdAt: Date(), itemIdentifier: UUID())
+                newTodo.saveItem()
+                
+                self.todoItems.append(newTodo)
+                
+                let indexPath = IndexPath(row: self.tableView.numberOfRows(inSection: 0), section: 0)
+                self.tableView.insertRows(at: [indexPath], with: .automatic)
+        }))
+        
+        
+        addAlert.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
+        
+        self.present(addAlert, animated: true,completion: nil)
+        
+    }
     func loadData() {
         todoItems = [TodoItem]()
         todoItems = DataManager.loadAll(TodoItem.self).sorted(by: {
