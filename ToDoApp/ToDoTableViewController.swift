@@ -8,7 +8,8 @@
 
 import UIKit
 
-class ToDoTableViewController: UITableViewController {
+class ToDoTableViewController: UITableViewController, TodoCellDelegate {
+    
 
     var todoItems:[TodoItem]!
     
@@ -52,6 +53,30 @@ class ToDoTableViewController: UITableViewController {
         self.present(addAlert, animated: true,completion: nil)
         
     }
+    
+    func didRequestDelete(_ cell: ToDoTableViewCell) {
+        if let indexPath = tableView.indexPath(for: cell) {
+            todoItems[indexPath.row].deleteItem()
+            todoItems.remove(at: indexPath.row)
+            tableView.deleteRows(at: [indexPath], with: .automatic)
+        }
+    }
+    
+    func didRequestComplete(_ cell: ToDoTableViewCell) {
+        if let indexPath = tableView.indexPath(for: cell) {
+            var todoItem = todoItems[indexPath.row]
+            todoItem.markAsCompleted()
+            cell.todoLabel.attributedText = strikeThroughText(todoItem.title)
+        }
+    }
+    
+    func strikeThroughText(_ text: String) -> NSAttributedString {
+        let attributeString: NSMutableAttributedString = NSMutableAttributedString(string: text)
+        attributeString.addAttribute(NSAttributedString.Key.strikethroughStyle,value: 1,range: NSMakeRange(0, attributeString.length))
+        
+        return attributeString
+    }
+    
     func loadData() {
         todoItems = [TodoItem]()
         todoItems = DataManager.loadAll(TodoItem.self).sorted(by: {
@@ -76,10 +101,15 @@ class ToDoTableViewController: UITableViewController {
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "Cell", for: indexPath) as! ToDoTableViewCell
         
+        cell.delegate = self
+        
         let todoItem = todoItems[indexPath.row]
         
         cell.todoLabel.text = todoItem.title
 
+        if todoItem.completed {
+            cell.todoLabel.attributedText = strikeThroughText(todoItem.title)
+        }
          //Configure the cell...
 
         return cell
